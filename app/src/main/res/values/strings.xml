@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">MPlayer</string>
+    <string name="splash_hint">Search Music Title, Artists, Movie etc.</string>
+    <string name="splash_text">Listen to your favourite\nsongs from itunes.</string>
 </resources>

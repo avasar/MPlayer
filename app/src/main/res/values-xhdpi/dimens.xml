@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="search_row_height">58dp</dimen>
+    <dimen name="search_row_margin">9dp</dimen>
+    <dimen name="search_row_image_width">42dp</dimen>
+    <dimen name="search_row_image_height">48dp</dimen>
+    <dimen name="search_row_title_size">16sp</dimen>
+    <dimen name="search_row_body_size">13sp</dimen>
+</resources>
