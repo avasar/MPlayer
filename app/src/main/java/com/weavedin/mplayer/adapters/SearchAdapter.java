@@ -12,6 +12,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.weavedin.mplayer.R;
 import com.weavedin.mplayer.models.SongInfo;
+import com.weavedin.mplayer.ui.player.PlayerActivity;
 
 import java.util.List;
 
@@ -41,9 +42,9 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.AlbumPhoto
 
         Glide.with(context)
                 .load(songsList.get(position).getArtworkUrl100())
-                .into(holder.ivSearch);
-        holder.tvSTitle.setText(songsList.get(position).getTrackName());
-        holder.tvSBody.setText(songsList.get(position).getArtistName() + " | "+songsList.get(position).getCollectionName());
+                .into(holder.iv_search_row);
+        holder.tv_search_title.setText(songsList.get(position).getTrackName());
+        holder.tv_search_body.setText(songsList.get(position).getArtistName() + " | "+songsList.get(position).getCollectionName());
 }
 
     @Override
@@ -53,20 +54,28 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.AlbumPhoto
 
     public class AlbumPhotoViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-        private ImageView ivSearch;
-        private TextView tvSTitle, tvSBody;
+        private ImageView iv_search_row;
+        private TextView tv_search_title, tv_search_body;
 
         public AlbumPhotoViewHolder(View v) {
             super(v);
             v.setOnClickListener(this);
-            ivSearch = (ImageView) v.findViewById(R.id.ivSearch);
-            tvSTitle = (TextView) v.findViewById(R.id.tvSTitle);
-            tvSBody = (TextView) v.findViewById(R.id.tvSBody);
+            iv_search_row = (ImageView) v.findViewById(R.id.iv_search_row);
+            tv_search_title = (TextView) v.findViewById(R.id.tv_search_title);
+            tv_search_body = (TextView) v.findViewById(R.id.tv_search_body);
         }
 
         @Override
         public void onClick(View view) {
-           
+            Intent intent = new Intent(context, PlayerActivity.class);
+            intent.putExtra("IMAGE_URL", songsList.get(getAdapterPosition()).getArtworkUrl100());
+            intent.putExtra("PREVIEW_URL", songsList.get(getAdapterPosition()).getPreviewUrl());
+            intent.putExtra("TRACK_ID", songsList.get(getAdapterPosition()).getTrackId());
+            intent.putExtra("TRACK_TITLE", songsList.get(getAdapterPosition()).getTrackName());
+            intent.putExtra("ARTIST_TITLE", songsList.get(getAdapterPosition()).getArtistName());
+            intent.putExtra("COLLECTION_TITLE", songsList.get(getAdapterPosition()).getCollectionName());
+            intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            context.startActivity(intent);
         }
     }
 }

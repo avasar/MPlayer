@@ -35,21 +35,22 @@ public class SearchActivity extends AppCompatActivity implements SearchViewInter
     Toolbar toolbar;
     @BindView(R.id.actv_search)
     AutoCompleteTextView actv_search;
-    @BindView(R.id.pbSearch)
-    ProgressBar pbSearch;
+    @BindView(R.id.pb_search)
+    ProgressBar pb_search;
     @BindView(R.id.pager)
     ViewPager pager;
-    @BindView(R.id.tv_searchCount)
-    TextView tv_searchCount;
-    @BindView(R.id.lnrIndicator)
-    LinearLayout lnrIndicator;
+    @BindView(R.id.tv_search_count)
+    TextView tv_search_count;
+    @BindView(R.id.lnr_indicator)
+    LinearLayout lnr_indicator;
     @BindView(R.id.tv_dummy_search)
     TextView tv_dummy_search;
+
     private int dotscount, pagerHeight;
     private ImageView[] dots;
     private DBManager dbManager;
-    SearchPresenter searchPresenter;
-    SearchFragmentPageAdapter searchFragmentPageAdapter;
+    private SearchPresenter searchPresenter;
+    private SearchFragmentPageAdapter searchFragmentPageAdapter;
     private String TAG = "SearchActivity";
 
 
@@ -146,8 +147,8 @@ public class SearchActivity extends AppCompatActivity implements SearchViewInter
     private void getSongs() {
         searchPresenter = new SearchPresenter(this, actv_search.getText().toString());
         pager.setAdapter(null);
-        lnrIndicator.removeAllViews();
-        tv_searchCount.setText("");
+        lnr_indicator.removeAllViews();
+        tv_search_count.setText("");
         showProgressBar();
         searchPresenter.getSongs();
 
@@ -155,13 +156,13 @@ public class SearchActivity extends AppCompatActivity implements SearchViewInter
 
     @Override
     public void showProgressBar() {
-        pbSearch.setVisibility(View.VISIBLE);
+        pb_search.setVisibility(View.VISIBLE);
         tv_dummy_search.setVisibility(View.GONE);
     }
 
     @Override
     public void hideProgressBar() {
-        pbSearch.setVisibility(View.GONE);
+        pb_search.setVisibility(View.GONE);
     }
 
     @Override
@@ -184,15 +185,15 @@ public class SearchActivity extends AppCompatActivity implements SearchViewInter
             searchFragmentPageAdapter = new SearchFragmentPageAdapter(SearchActivity.this, getSupportFragmentManager(), songs.getResults(), songs.getResultCount(), fragmentCount,rowCount);
             pager.setAdapter(searchFragmentPageAdapter);
             pager.getAdapter().notifyDataSetChanged();
-            tv_searchCount.setText("All Songs - " + String.valueOf(songs.getResultCount()));
+            tv_search_count.setText("All Songs - " + String.valueOf(songs.getResultCount()));
             dotscount = searchFragmentPageAdapter.getCount();
             dots = new ImageView[dotscount];
             for (int i = 0; i < dotscount; i++) {
                 dots[i] = new ImageView(this);
                 dots[i].setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.rectangle_4_copy));
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                params.setMargins(8, 0, 8, 0);
-                lnrIndicator.addView(dots[i], params);
+                params.setMargins(10, 0, 10, 0);
+                lnr_indicator.addView(dots[i], params);
 
             }
 

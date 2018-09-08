@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Created by avasar on 07,September,2018
  */
-public class Songs {
+public class Songs implements Serializable{
 
     @SerializedName("resultCount")
     @Expose

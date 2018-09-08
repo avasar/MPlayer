@@ -11,7 +11,7 @@ import java.io.Serializable;
 /**
  * Created by avasar on 07,September,2018
  */
-public class SongInfo {
+public class SongInfo implements Serializable{
     @SerializedName("trackId")
     @Expose
     private Integer trackId;
