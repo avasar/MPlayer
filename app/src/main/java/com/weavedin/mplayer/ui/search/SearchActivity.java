@@ -25,9 +25,13 @@ import android.widget.Toast;
 
 import com.weavedin.mplayer.R;
 import com.weavedin.mplayer.database.DBManager;
+import com.weavedin.mplayer.models.SongInfo;
 import com.weavedin.mplayer.models.Songs;
 import com.weavedin.mplayer.ui.favorite.FavoriteActivity;
 import com.weavedin.mplayer.utils.Utils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;

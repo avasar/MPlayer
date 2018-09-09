@@ -6,6 +6,7 @@ import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -119,7 +120,13 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
             uri = Uri.parse(previewUrl);
             init();
-            initInfos(previewUrl);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    initInfos(previewUrl);
+                }
+            }, 1000);
+
             tv_player_title.setText(getIntent().getStringExtra("TRACK_TITLE"));
             tv_player_body.setText(getIntent().getStringExtra("ARTIST_TITLE") + " | " +
                     getIntent().getStringExtra("COLLECTION_TITLE"));
