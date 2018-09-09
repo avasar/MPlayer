@@ -51,7 +51,7 @@ public class SearchPresenter implements SearchPresenterInterface{
             public void onError(@NonNull Throwable e) {
                 Log.d(TAG, "Error" + e);
                 e.printStackTrace();
-                svi.displayError("Error fetching Posts Data");
+                svi.displayError("Error fetching songs data");
             }
 
             @Override

@@ -24,8 +24,8 @@ import butterknife.ButterKnife;
  */
 public class SearchFragment extends Fragment {
 
-    @BindView(R.id.rvSearch)
-    RecyclerView rvSearch;
+    @BindView(R.id.rv_search)
+    RecyclerView rv_search;
     RecyclerView.Adapter adapter;
     private ArrayList<SongInfo> songInfos = new ArrayList<>();
 
@@ -45,10 +45,10 @@ public class SearchFragment extends Fragment {
 
     private void setupViews() {
         CustomLinearLayoutManager customLayoutManager = new CustomLinearLayoutManager(getActivity(),LinearLayoutManager.VERTICAL,false);
-        rvSearch.setLayoutManager(customLayoutManager);
+        rv_search.setLayoutManager(customLayoutManager);
         if (songInfos != null) {
             adapter = new SearchAdapter(songInfos, getActivity());
-            rvSearch.setAdapter(adapter);
+            rv_search.setAdapter(adapter);
         }
     }
 }

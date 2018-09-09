@@ -1,6 +1,7 @@
 package com.weavedin.mplayer.ui.search;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +16,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -24,12 +26,13 @@ import android.widget.Toast;
 import com.weavedin.mplayer.R;
 import com.weavedin.mplayer.database.DBManager;
 import com.weavedin.mplayer.models.Songs;
+import com.weavedin.mplayer.ui.favorite.FavoriteActivity;
 import com.weavedin.mplayer.utils.Utils;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class SearchActivity extends AppCompatActivity implements SearchViewInterface {
+public class SearchActivity extends AppCompatActivity implements SearchViewInterface, View.OnClickListener {
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
@@ -45,6 +48,8 @@ public class SearchActivity extends AppCompatActivity implements SearchViewInter
     LinearLayout lnr_indicator;
     @BindView(R.id.tv_dummy_search)
     TextView tv_dummy_search;
+    @BindView(R.id.ib_search_fav)
+    ImageButton ib_search_fav;
 
     private int dotscount, pagerHeight;
     private ImageView[] dots;
@@ -65,6 +70,7 @@ public class SearchActivity extends AppCompatActivity implements SearchViewInter
     private void setupViews() {
         dbManager = new DBManager(this);
         dbManager.open();
+        ib_search_fav.setOnClickListener(this);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         actv_search.addTextChangedListener(new TextWatcher() {
@@ -75,7 +81,7 @@ public class SearchActivity extends AppCompatActivity implements SearchViewInter
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                final String[] terms = dbManager.getAllSearchTerms(s.toString());
+                final String[] terms = dbManager.getSearchTerms(s.toString());
                 if (terms != null) {
                     ArrayAdapter<String> adapter = new ArrayAdapter<>(SearchActivity.this,
                             android.R.layout.simple_dropdown_item_1line, terms);
@@ -135,10 +141,11 @@ public class SearchActivity extends AppCompatActivity implements SearchViewInter
     }
 
     private void performSearch() {
+        actv_search.dismissDropDown();
         InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         in.hideSoftInputFromWindow(actv_search.getWindowToken(), 0);
         if (actv_search.getText().toString().length() > 0) {
-            dbManager.insert(actv_search.getText().toString());
+            dbManager.insertSearchTerm(actv_search.getText().toString());
         }
         getSongs();
 
@@ -209,5 +216,14 @@ public class SearchActivity extends AppCompatActivity implements SearchViewInter
     @Override
     public void displayError(String s) {
         showToast(s);
+    }
+
+    @Override
+    public void onClick(View v) {
+
+        if(v == ib_search_fav){
+
+            startActivity(new Intent(SearchActivity.this, FavoriteActivity.class));
+        }
     }
 }

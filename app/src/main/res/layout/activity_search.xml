@@ -30,6 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="right|center_vertical"
             android:layout_marginRight="20dp"
+            android:id="@+id/ib_search_fav"
             android:background="@drawable/favorite" />
 
     </android.support.v7.widget.Toolbar>

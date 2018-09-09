@@ -5,6 +5,7 @@
     android:layout_height="@dimen/search_row_height"
     android:layout_marginBottom="@dimen/search_row_margin"
     android:layout_marginLeft="@dimen/search_row_margin"
+    android:id="@+id/cv_row_search"
     android:layout_marginRight="@dimen/search_row_margin"
     app:cardElevation="1dp">
 

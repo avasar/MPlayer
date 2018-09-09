@@ -1,5 +1,6 @@
 package com.weavedin.mplayer.ui.player;
 
+import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
@@ -16,9 +17,12 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.weavedin.mplayer.R;
+import com.weavedin.mplayer.database.DBManager;
+import com.weavedin.mplayer.ui.favorite.FavoriteActivity;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -54,9 +58,12 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     ImageView iv_player;
 
     private Handler mHandler;
-    private String mediaUrl = "";
     private MediaPlayer mMediaPlayer = null;
     private Uri uri;
+    private DBManager dbManager;
+    private int trackId;
+    private String trackTitle, artistTitle, collectionTitle, imageUrl, previewUrl;
+    private boolean isFavorite = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,10 +76,15 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void setupViews() {
+        dbManager = new DBManager(this);
+        dbManager.open();
         setSupportActionBar(toolbar_player);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         rlv_player_play_pause.setOnClickListener(this);
+        ib_player_list.setOnClickListener(this);
+        ib_player_add2fav.setOnClickListener(this);
+        ib_player_fav.setOnClickListener(this);
         seekbar_player.setEnabled(false);
         seekbar_player.setProgress(0);
         seekbar_player.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -98,10 +110,16 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     private void setupData() {
 
         if (getIntent().getExtras() != null) {
-            mediaUrl = getIntent().getStringExtra("PREVIEW_URL");
-            uri = Uri.parse(mediaUrl);
+            trackId = getIntent().getIntExtra("TRACK_ID", 0);
+            imageUrl = getIntent().getStringExtra("IMAGE_URL");
+            previewUrl = getIntent().getStringExtra("PREVIEW_URL");
+            trackTitle = getIntent().getStringExtra("TRACK_TITLE");
+            artistTitle = getIntent().getStringExtra("ARTIST_TITLE");
+            collectionTitle = getIntent().getStringExtra("COLLECTION_TITLE");
+
+            uri = Uri.parse(previewUrl);
             init();
-            initInfos(mediaUrl);
+            initInfos(previewUrl);
             tv_player_title.setText(getIntent().getStringExtra("TRACK_TITLE"));
             tv_player_body.setText(getIntent().getStringExtra("ARTIST_TITLE") + " | " +
                     getIntent().getStringExtra("COLLECTION_TITLE"));
@@ -109,7 +127,13 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                     .load(getIntent().getStringExtra("IMAGE_URL"))
                     .into(iv_player);
 
-
+            if (dbManager.isFavorite(trackId)) {
+                isFavorite = true;
+                ib_player_add2fav.setBackgroundResource(R.drawable.shape_heart_red);
+            } else {
+                isFavorite = false;
+                ib_player_add2fav.setBackgroundResource(R.drawable.shape_heart);
+            }
         }
     }
 
@@ -226,7 +250,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     public void play() {
         if (mMediaPlayer != null) {
             mMediaPlayer.start();
-            if(mHandler == null){
+            if (mHandler == null) {
                 mHandler = new Handler();
                 mHandler.post(runnable);
             }
@@ -248,6 +272,18 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     public void onClick(View v) {
         if (v == rlv_player_play_pause) {
             playPauseTapped();
+        } else if (v == ib_player_list) {
+            onBackPressed();
+        } else if (v == ib_player_fav) {
+            startActivity(new Intent(PlayerActivity.this, FavoriteActivity.class));
+            onBackPressed();
+        } else if (v == ib_player_add2fav) {
+            if (!isFavorite) {
+                isFavorite = true;
+                ib_player_add2fav.setBackgroundResource(R.drawable.shape_heart_red);
+                dbManager.insertFavoriteTrack(trackId, trackTitle, artistTitle, collectionTitle, imageUrl, previewUrl);
+                Toast.makeText(getApplicationContext(), "Added to Favorite", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
