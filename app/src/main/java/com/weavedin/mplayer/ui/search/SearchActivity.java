@@ -190,10 +190,10 @@ public class SearchActivity extends AppCompatActivity implements SearchViewInter
 
             int rowCount = (int) (pagerDp / rowDp);
             int fragmentCount = songs.getResultCount() / rowCount;
-            if(songs.getResultCount() % rowCount != 0){
-                fragmentCount+=1;
+            if (songs.getResultCount() % rowCount != 0) {
+                fragmentCount += 1;
             }
-            searchFragmentPageAdapter = new SearchFragmentPageAdapter(SearchActivity.this, getSupportFragmentManager(), songs.getResults(), songs.getResultCount(), fragmentCount,rowCount);
+            searchFragmentPageAdapter = new SearchFragmentPageAdapter(SearchActivity.this, getSupportFragmentManager(), songs.getResults(), songs.getResultCount(), fragmentCount, rowCount);
             pager.setAdapter(searchFragmentPageAdapter);
             pager.getAdapter().notifyDataSetChanged();
             tv_search_count.setText("All Songs - " + String.valueOf(songs.getResultCount()));
@@ -207,9 +207,9 @@ public class SearchActivity extends AppCompatActivity implements SearchViewInter
                 lnr_indicator.addView(dots[i], params);
 
             }
-
-            dots[0].setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.rectangle_4));
-
+            if (dots != null && dots.length > 0) {
+                dots[0].setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.rectangle_4));
+            }
 
         } else {
             tv_dummy_search.setVisibility(View.VISIBLE);
@@ -225,7 +225,7 @@ public class SearchActivity extends AppCompatActivity implements SearchViewInter
     @Override
     public void onClick(View v) {
 
-        if(v == ib_search_fav){
+        if (v == ib_search_fav) {
 
             startActivity(new Intent(SearchActivity.this, FavoriteActivity.class));
         }
