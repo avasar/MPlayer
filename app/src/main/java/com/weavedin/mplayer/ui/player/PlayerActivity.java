@@ -1,15 +1,25 @@
 package com.weavedin.mplayer.ui.player;
 
+import android.Manifest;
+import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
@@ -25,6 +35,7 @@ import com.weavedin.mplayer.R;
 import com.weavedin.mplayer.database.DBManager;
 import com.weavedin.mplayer.ui.favorite.FavoriteActivity;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -65,6 +76,8 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     private int trackId;
     private String trackTitle, artistTitle, collectionTitle, imageUrl, previewUrl;
     private boolean isFavorite = false;
+    private DownloadManager mgr = null;
+    private final String TAG = "PlayerActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +96,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         rlv_player_play_pause.setOnClickListener(this);
+        mgr = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
         ib_player_list.setOnClickListener(this);
         ib_player_add2fav.setOnClickListener(this);
         ib_player_fav.setOnClickListener(this);
@@ -105,6 +119,9 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             }
         });
 
+        registerReceiver(onComplete,
+                new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+
 
     }
 
@@ -119,13 +136,31 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             collectionTitle = getIntent().getStringExtra("COLLECTION_TITLE");
 
             uri = Uri.parse(previewUrl);
-            init();
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    initInfos(previewUrl);
-                }
-            }, 1000);
+
+
+            final File file = new File(Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS) + "/MPlayer/" + "/" + trackTitle + trackId + ".m4a");
+
+            if (file == null || !file.exists()) {
+                init(false, null);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        initInfos(false, null, previewUrl);
+                    }
+                }, 1000);
+            } else {
+
+                init(true, file.getAbsolutePath());
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        initInfos(true, file.getAbsolutePath(), previewUrl);
+                    }
+                }, 1000);
+
+            }
+
 
             tv_player_title.setText(getIntent().getStringExtra("TRACK_TITLE"));
             tv_player_body.setText(getIntent().getStringExtra("ARTIST_TITLE") + " | " +
@@ -144,12 +179,19 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         }
     }
 
-    public void init() {
+    public void init(boolean isFromFile, String filePath) {
         stop();
         try {
             mMediaPlayer = new MediaPlayer();
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mMediaPlayer.setDataSource(getApplicationContext(), uri);
+
+            if (isFromFile) {
+
+                mMediaPlayer.setDataSource(filePath);
+            } else {
+
+                mMediaPlayer.setDataSource(getApplicationContext(), uri);
+            }
             mMediaPlayer.setOnPreparedListener(this);
             mMediaPlayer.setOnCompletionListener(this);
             mMediaPlayer.prepareAsync(); // prepare async to not block main thread
@@ -159,20 +201,18 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         }
     }
 
-    private void initInfos(String url) {
-        if (url != null) {
-
-            MediaMetadataRetriever mData = new MediaMetadataRetriever();
+    private void initInfos(boolean isFromFile, String filePath, String url) {
+        MediaMetadataRetriever mData = new MediaMetadataRetriever();
+        if (isFromFile) {
+            mData.setDataSource(filePath);
+        } else {
             mData.setDataSource(url, new HashMap<String, String>());
-
-            int duration = Integer.parseInt(mData.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
-
-            tv_player_duration.setText(secondsToString(duration));
-
-            seekbar_player.setMax(duration);
-            seekbar_player.setEnabled(true);
-
         }
+        int duration = Integer.parseInt(mData.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
+        tv_player_duration.setText(secondsToString(duration));
+        seekbar_player.setMax(duration);
+        seekbar_player.setEnabled(true);
+
     }
 
     private String secondsToString(int time) {
@@ -291,6 +331,87 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                 dbManager.insertFavoriteTrack(trackId, trackTitle, artistTitle, collectionTitle, imageUrl, previewUrl);
                 Toast.makeText(getApplicationContext(), "Added to Favorite", Toast.LENGTH_SHORT).show();
             }
+
+
+            File file = new File(Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS) + "/MPlayer/" + "/" + trackTitle + trackId + ".m4a");
+
+            if (file == null || !file.exists()) {
+
+                isStoragePermissionGranted();
+            }
+        }
+    }
+
+    public boolean isStoragePermissionGranted() {
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                Log.v(TAG, "Permission is granted");
+                fileDownalod(previewUrl);
+                return true;
+            } else {
+
+                Log.v(TAG, "Permission is revoked");
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                return false;
+            }
+        } else { //permission is automatically granted on sdk<23 upon installation
+            Log.v(TAG, "Permission is granted");
+            fileDownalod(previewUrl);
+            return true;
+        }
+    }
+
+
+
+
+
+    public void fileDownalod(String url) {
+        Uri uri = Uri.parse(url);
+        Environment
+                .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                .mkdirs();
+
+        Test test = new Test();
+        test.methodA().methodB();
+
+
+
+
+        mgr.enqueue(new DownloadManager.Request(uri)
+                .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI |
+                        DownloadManager.Request.NETWORK_MOBILE)
+                .setAllowedOverRoaming(false)
+                .setTitle(trackTitle)
+                .setDescription(artistTitle + " | " + collectionTitle)
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "/MPlayer/" + "/" + trackTitle + trackId + ".m4a"));
+
+    }
+
+    BroadcastReceiver onComplete = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            Toast.makeText(getApplicationContext(), "Download complete!", Toast.LENGTH_SHORT).show();
+
+        }
+    };
+
+
+    public class Test{
+
+        public Test(){
+
+        }
+
+        public Test methodA(){
+            return this;
+        }
+
+        public Test methodB(){
+            return this;
         }
     }
 
@@ -313,9 +434,20 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     @Override
-    protected void onDestroy() {
-        stop();
+    public void onDestroy() {
         super.onDestroy();
+        stop();
+        unregisterReceiver(onComplete);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            Log.v(TAG, "Permission: " + permissions[0] + "was " + grantResults[0]);
+            //resume tasks needing this permission
+            fileDownalod(previewUrl);
+        }
     }
 
 
